@@ -1,0 +1,2 @@
+# sample_wcf_winservice_pipe_duplex
+WCFでWindowsサービスとパイプ通信（双方向）するサンプルコード
