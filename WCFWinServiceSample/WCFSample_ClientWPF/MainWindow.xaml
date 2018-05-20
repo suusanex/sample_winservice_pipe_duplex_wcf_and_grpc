@@ -4,7 +4,9 @@
         Title="MainWindow" Height="350" Width="525">
     <DockPanel LastChildFill="False">
         <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>
         <Button Margin="5" DockPanel.Dock="Top" Content="GetData" Click="OnBtnGetData"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Session Disconnect" Click="OnBtnSessionDisconnect"/>
         <Button Margin="5" DockPanel.Dock="Top" Content="Channel Close" Click="OnBtnChannelClose"/>
     </DockPanel>
 </Window>

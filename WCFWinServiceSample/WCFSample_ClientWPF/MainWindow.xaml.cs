@@ -60,6 +60,7 @@ namespace WCFSample_ClientWPF
 
         private void WCFFinalize()
         {
+            channel?.SessionDisconnect();
             channelFactory.Close();
         }
 
@@ -68,6 +69,18 @@ namespace WCFSample_ClientWPF
         {
             var ret = channel.GetData(2);
             log.Trace($"{nameof(OnBtnGetData)}, {ret}");
+            MessageBox.Show("OK");
+        }
+        private void OnBtnSessionConnect(object sender, RoutedEventArgs e)
+        {
+            channel.SessionConnect();
+            log.Trace($"{nameof(OnBtnSessionConnect)}");
+            MessageBox.Show("OK");
+        }
+        private void OnBtnSessionDisconnect(object sender, RoutedEventArgs e)
+        {
+            channel.SessionDisconnect();
+            log.Trace($"{nameof(OnBtnSessionDisconnect)}");
             MessageBox.Show("OK");
         }
     }

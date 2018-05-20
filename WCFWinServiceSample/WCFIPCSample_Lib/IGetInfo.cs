@@ -12,7 +12,14 @@ namespace WCFIPCSample_Lib
         CallbackContract = typeof(IGetInfoCallback))]
     public interface IGetInfo
     {
-        [OperationContract]
+        [OperationContract(IsInitiating = true)]
+        void SessionConnect();
+
+        [OperationContract(IsInitiating = false)]
+        void SessionDisconnect();
+
+
+        [OperationContract(IsInitiating = false)]
         string GetData(int value);
 
     }

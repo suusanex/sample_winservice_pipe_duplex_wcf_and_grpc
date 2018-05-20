@@ -31,6 +31,15 @@ namespace WCFSample_ServiceApp
             var MainTaskObj = new Task(MainTask);
 
             MainTaskObj.Start();
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    GetInfoServer.SendDataAllSession($"AllSession, {DateTime.Now}");
+                    Thread.Sleep(5000);
+                }
+            }).Start();
         }
 
         protected override void OnStop()

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NLog;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -20,9 +22,44 @@ namespace WCFIPCSample_Lib
         }
 
 
+        static Logger log = LogManager.GetCurrentClassLogger();
+
+        private static ConcurrentDictionary<string, OperationContext> _SessionId_Operation_Dic =
+            new ConcurrentDictionary<string, OperationContext>();
+
         void SendData(string value)
         {
             Callback.SendData(value);
+        }
+        public static void SendDataAllSession(string value)
+        {
+
+            foreach (var session in _SessionId_Operation_Dic)
+            {
+                try
+                {
+                    session.Value.GetCallbackChannel<IGetInfoCallback>().SendData($"{session.Key}, {value}");
+
+                }
+                catch (Exception ex)
+                {
+                    log.Trace($"{session.Key}, {ex}");
+                    _SessionId_Operation_Dic.TryRemove(session.Key, out OperationContext temp);
+                }
+            }
+
+        }
+
+        public void SessionDisconnect()
+        {
+            log.Trace($"{nameof(SessionDisconnect)}, {OperationContext.Current.SessionId}");
+            _SessionId_Operation_Dic.TryRemove(OperationContext.Current.SessionId, out OperationContext temp);
+        }
+
+        public void SessionConnect()
+        {
+            _SessionId_Operation_Dic[OperationContext.Current.SessionId] = OperationContext.Current;
+            log.Trace($"{nameof(SessionConnect)}, {OperationContext.Current.SessionId}");
         }
 
         private IGetInfoCallback Callback { get; } = OperationContext.Current.GetCallbackChannel<IGetInfoCallback>();
