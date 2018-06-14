@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ServiceModel;
+using System.Threading;
 using WCFIPCSample_Lib;
 using NLog;
 
@@ -26,13 +27,21 @@ namespace WCFSample_ClientWPF
         {
             InitializeComponent();
 
-            InstanceContext instanceContext = new InstanceContext(new GetInfoClient());
-            var uri = new Uri("net.pipe://localhost/WCFSample/DuplexService");
-            var address = new EndpointAddress(uri);
-            var binding = new NetNamedPipeBinding();
+            CreateFactory();
 
-            channelFactory = new DuplexChannelFactory<IGetInfo>(instanceContext, binding, address);
+        }
 
+        private void CreateFactory()
+        {
+            if (channelFactory == null)
+            {
+                InstanceContext instanceContext = new InstanceContext(new GetInfoClient());
+                var uri = new Uri("net.pipe://localhost/WCFSample/DuplexService");
+                var address = new EndpointAddress(uri);
+                var binding = new NetNamedPipeBinding();
+
+                channelFactory = new DuplexChannelFactory<IGetInfo>(instanceContext, binding, address);
+            }
         }
 
         ~MainWindow()
@@ -45,23 +54,92 @@ namespace WCFSample_ClientWPF
 
         private Logger log = LogManager.GetCurrentClassLogger();
 
+        Timer channelReconnectTimer;
+
         private void OnBtnChannelOpen(object sender, RoutedEventArgs e)
         {
+            CreateFactory();
+
             channelFactory.Open();
+
+            channelReconnectTimer = new Timer(ChannelAndSessionReconnect, null, ReconnectTimeSpan, new TimeSpan(0, 0, 0, 0, -1));
+
             channel = channelFactory.CreateChannel();
+
+
             MessageBox.Show("OK");
         }
 
+        private TimeSpan ReconnectTimeSpan = new TimeSpan(0, 9, 0);//サーバー側のReceiveTimeoutより短くする必要がある
+
         private void OnBtnChannelClose(object sender, RoutedEventArgs e)
         {
-            WCFFinalize();
+            channelReconnectTimer?.Dispose();
+            channelReconnectTimer = null;
+
+            try
+            {
+                channelFactory.Close();
+            }
+            catch
+            {
+                channelFactory.Abort();
+            }
+
+            channelFactory = null;
             MessageBox.Show("OK");
+        }
+
+        void ChannelAndSessionReconnect(object NullObj)
+        {
+            log.Trace($"{nameof(ChannelAndSessionReconnect)}");
+            try
+            {
+
+                try
+                {
+                    channelFactory.Close();
+                }
+                catch
+                {
+                    channelFactory.Abort();
+                }
+                channelFactory = null;
+
+
+                CreateFactory();
+
+                channelFactory.Open();
+                channelReconnectTimer.Change(ReconnectTimeSpan, new TimeSpan(0, 0, 0, 0, -1));
+
+                channel = channelFactory.CreateChannel();
+
+                channel.SessionConnect();
+
+            }
+            catch (Exception e)
+            {
+                log.Trace($"{e}");
+            }
         }
 
         private void WCFFinalize()
         {
-            channel?.SessionDisconnect();
-            channelFactory.Close();
+            try
+            {
+                channel?.SessionDisconnect();
+            }
+            catch { }
+
+            try
+            {
+                channelFactory.Close();
+            }
+            catch
+            {
+                channelFactory.Abort();
+            }
+            channelFactory = null;
         }
 
 
