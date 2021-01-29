@@ -36,7 +36,7 @@ namespace WCFSample_ServiceApp
             {
                 while (true)
                 {
-                    GetInfoServer.SendDataAllSession($"AllSession, {DateTime.Now}");
+                    UserSesionToServiceServer.SendDataAllSession($"AllSession, {DateTime.Now}");
                     Thread.Sleep(5000);
                 }
             }).Start();
@@ -53,13 +53,13 @@ namespace WCFSample_ServiceApp
         {
             try
             {
-				using (var wcfSrv = new ServiceHost(typeof(GetInfoServer)))
+				using (var wcfSrv = new ServiceHost(typeof(UserSesionToServiceServer)))
                 {
                     log.Trace("WCF Service new");
 
                     var uri = new Uri("net.pipe://localhost/WCFSample/DuplexService");
                     var binding = new NetNamedPipeBinding();
-                    wcfSrv.AddServiceEndpoint(typeof(IGetInfo), binding, uri);
+                    wcfSrv.AddServiceEndpoint(typeof(IUserSessionToService), binding, uri);
 
                     wcfSrv.Faulted += OnWCFFaulted;
                     wcfSrv.Open();
@@ -84,7 +84,7 @@ namespace WCFSample_ServiceApp
         {
             log.Trace("WCF Fault {0}", e.ToString());
 
-            var IWCF = sender as IGetInfo;
+            var IWCF = sender as IUserSessionToService;
             if (IWCF != null)
             {
                 log.Trace("WCF Fault {0}", e.ToString());

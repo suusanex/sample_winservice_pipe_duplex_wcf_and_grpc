@@ -1,7 +1,11 @@
-﻿<Window x:Class="WCFSample_ClientWPF.MainWindow"
+﻿<Window x:Class="gRPCCoreClient.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:gRPCCoreClient"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
     <DockPanel>
         <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
         <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>

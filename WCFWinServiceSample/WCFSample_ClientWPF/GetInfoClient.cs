@@ -7,12 +7,22 @@ using WCFIPCSample_Lib;
 
 namespace WCFSample_ClientWPF
 {
-    public class GetInfoClient : IGetInfoCallback
+    public class ServiceToUserSessionClient : IServiceToUserSessionCallback
     {
         private Logger log = LogManager.GetCurrentClassLogger();
-        public void SendData(string value)
+        public bool SendData(string value)
         {
-            log.Trace($"{nameof(SendData)}, {value}");
+            if (OnSendDataRequest != null)
+            {
+                return OnSendDataRequest(value);
+            }
+            else
+            {
+                return false;
+            }
         }
+
+        public event Func<string, bool> OnSendDataRequest;
+
     }
 }

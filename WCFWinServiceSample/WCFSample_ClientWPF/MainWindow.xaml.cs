@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,24 +26,97 @@ namespace WCFSample_ClientWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        public class BindingSource : INotifyPropertyChanged
+        {
+            #region INotifyPropertyChanged実装 
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName = null));
+            }
+            #endregion
+
+            public BindingSource()
+            {
+            }
+
+
+            string _Output;
+            public string Output
+            {
+                get => _Output;
+                set { _Output = value; OnPropertyChanged(); }
+            }
+
+            //string _DUMMY;
+            //public string DUMMY
+            //{
+            //    get => _DUMMY;
+            //    set { _DUMMY = value; OnPropertyChanged(); }
+            //}
+
+        }
+
+        public BindingSource m_Bind;
+
         public MainWindow()
         {
             InitializeComponent();
 
+            m_Bind = new BindingSource();
+            DataContext = m_Bind;
             CreateFactory();
 
+        }
+
+        private const int m_WriteLineMaxLines = 1000;
+        private int m_WriteLineLines;
+
+        void WriteLine(string msg)
+        {
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (m_WriteLineMaxLines <= m_WriteLineLines)
+                    {
+                        var deleteLineCount = m_WriteLineMaxLines / 2;
+                        Output.Text = string.Join(Environment.NewLine,
+                            Output.Text.Split(Environment.NewLine.ToArray(), StringSplitOptions.RemoveEmptyEntries).Skip(deleteLineCount)) + Environment.NewLine;
+                        m_WriteLineLines -= deleteLineCount;
+                        Output.AppendText($"最大行数{m_WriteLineMaxLines}を超えたため、テキストの半分を削除しました" + Environment.NewLine);
+                        m_WriteLineLines++;
+                    }
+                    Output.AppendText($"{m_WriteLineLines}:{msg}{Environment.NewLine}");
+                    m_WriteLineLines++;
+                    Output.ScrollToEnd();
+                });
+            }
+            catch (Exception e)
+            {
+                log.Warn($"Window Text Write Fail, {msg}, {e}");
+            }
         }
 
         private void CreateFactory()
         {
             if (channelFactory == null)
             {
-                InstanceContext instanceContext = new InstanceContext(new GetInfoClient());
+                var client = new ServiceToUserSessionClient();
+                client.OnSendDataRequest += value =>
+                {
+                    var message = $"OnSendDataRequest, {value}";
+                    WriteLine(message);
+                    log.Trace(message);
+                    return true;
+                };
+                InstanceContext instanceContext = new InstanceContext(client);
                 var uri = new Uri("net.pipe://localhost/WCFSample/DuplexService");
                 var address = new EndpointAddress(uri);
                 var binding = new NetNamedPipeBinding();
 
-                channelFactory = new DuplexChannelFactory<IGetInfo>(instanceContext, binding, address);
+                channelFactory = new DuplexChannelFactory<IUserSessionToService>(instanceContext, binding, address);
             }
         }
 
@@ -49,8 +125,8 @@ namespace WCFSample_ClientWPF
             WCFFinalize();
         }
 
-        private DuplexChannelFactory<IGetInfo> channelFactory;
-        private IGetInfo channel;
+        private DuplexChannelFactory<IUserSessionToService> channelFactory;
+        private IUserSessionToService channel;
 
         private Logger log = LogManager.GetCurrentClassLogger();
 
@@ -67,7 +143,7 @@ namespace WCFSample_ClientWPF
             channel = channelFactory.CreateChannel();
 
 
-            MessageBox.Show("OK");
+            WriteLine("OK");
         }
 
         private TimeSpan ReconnectTimeSpan = new TimeSpan(0, 9, 0);//サーバー側のReceiveTimeoutより短くする必要がある
@@ -87,7 +163,7 @@ namespace WCFSample_ClientWPF
             }
 
             channelFactory = null;
-            MessageBox.Show("OK");
+            WriteLine("OK");
         }
 
         void ChannelAndSessionReconnect(object NullObj)
@@ -147,19 +223,71 @@ namespace WCFSample_ClientWPF
         {
             var ret = channel.GetData(2);
             log.Trace($"{nameof(OnBtnGetData)}, {ret}");
-            MessageBox.Show("OK");
+            WriteLine("OK");
         }
         private void OnBtnSessionConnect(object sender, RoutedEventArgs e)
         {
             channel.SessionConnect();
             log.Trace($"{nameof(OnBtnSessionConnect)}");
-            MessageBox.Show("OK");
+            WriteLine("OK");
         }
         private void OnBtnSessionDisconnect(object sender, RoutedEventArgs e)
         {
             channel.SessionDisconnect();
             log.Trace($"{nameof(OnBtnSessionDisconnect)}");
-            MessageBox.Show("OK");
+            WriteLine("OK");
         }
+        private void OnBtnStopWatch(object sender, RoutedEventArgs e)
+        {
+            var msg = new StringBuilder();
+
+            var stop = new Stopwatch();
+            stop.Start();
+
+            OneCall();
+
+            stop.Stop();
+            msg.AppendLine($"1 time = {stop.Elapsed}");
+
+            stop = new Stopwatch();
+            stop.Start();
+
+            int loop = 10;
+            for (int i = 0; i < loop; i++)
+            {
+                OneCall();
+            }
+
+            stop.Stop();
+
+            msg.AppendLine($"{loop} time = {stop.Elapsed}");
+
+            WriteLine(msg.ToString());
+
+            void OneCall()
+            {
+
+                CreateFactory();
+
+                channelFactory.Open();
+
+                channel = channelFactory.CreateChannel();
+                channel.SessionConnect();
+                var ret = channel.GetData(2);
+                channel.SessionDisconnect();
+
+                try
+                {
+                    channelFactory.Close();
+                }
+                catch
+                {
+                    channelFactory.Abort();
+                }
+
+                channelFactory = null;
+            }
+        }
+
     }
 }

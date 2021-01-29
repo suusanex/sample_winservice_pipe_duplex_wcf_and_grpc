@@ -13,7 +13,7 @@ namespace WCFIPCSample_Lib
 
 
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession)]
-    public class GetInfoServer : IGetInfo
+    public class UserSesionToServiceServer : IUserSessionToService
     {
         public string GetData(int value)
         {
@@ -38,7 +38,7 @@ namespace WCFIPCSample_Lib
             {
                 try
                 {
-                    session.Value.GetCallbackChannel<IGetInfoCallback>().SendData($"{session.Key}, {value}");
+                    session.Value.GetCallbackChannel<IServiceToUserSessionCallback>().SendData($"{session.Key}, {value}");
 
                 }
                 catch (Exception ex)
@@ -62,6 +62,6 @@ namespace WCFIPCSample_Lib
             log.Trace($"{nameof(SessionConnect)}, {OperationContext.Current.SessionId}");
         }
 
-        private IGetInfoCallback Callback { get; } = OperationContext.Current.GetCallbackChannel<IGetInfoCallback>();
+        private IServiceToUserSessionCallback Callback { get; } = OperationContext.Current.GetCallbackChannel<IServiceToUserSessionCallback>();
     }
 }

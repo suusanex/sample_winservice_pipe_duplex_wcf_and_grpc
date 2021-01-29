@@ -9,8 +9,8 @@ namespace WCFIPCSample_Lib
 {
 
     [ServiceContract(SessionMode = SessionMode.Required,
-        CallbackContract = typeof(IGetInfoCallback))]
-    public interface IGetInfo
+        CallbackContract = typeof(IServiceToUserSessionCallback))]
+    public interface IUserSessionToService
     {
         [OperationContract(IsInitiating = true)]
         void SessionConnect();
@@ -24,10 +24,10 @@ namespace WCFIPCSample_Lib
 
     }
 
-    public interface IGetInfoCallback
+    public interface IServiceToUserSessionCallback
     {
         [OperationContract]
-        void SendData(string value);
+        bool SendData(string value);
 
 
     }
