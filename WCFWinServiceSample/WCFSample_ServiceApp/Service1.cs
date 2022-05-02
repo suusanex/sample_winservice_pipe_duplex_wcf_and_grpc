@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Authentication;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,12 @@ namespace WCFSample_ServiceApp
         {
             log.Trace("OnStart");
 
+            HostInitRetry = () =>
+            {
+                log.Trace("WCF HostInitRetry Start");
+                Task.Run(MainTask);
+            };
+
             var MainTaskObj = new Task(MainTask);
 
             MainTaskObj.Start();
@@ -40,6 +47,7 @@ namespace WCFSample_ServiceApp
                     Thread.Sleep(5000);
                 }
             }).Start();
+
         }
 
         protected override void OnStop()
@@ -49,11 +57,34 @@ namespace WCFSample_ServiceApp
 
         AutoResetEvent MainTaskEndEvent;
 
+        private UserSesionToServiceServer m_UserSesionToServiceServer = new UserSesionToServiceServer();
+
+        internal static Action HostInitRetry;
+
+        private ServiceHost m_WCFService;
+
         void MainTask()
         {
             try
             {
-				using (var wcfSrv = new ServiceHost(typeof(UserSesionToServiceServer)))
+                var wcfSrv = new ServiceHost(m_UserSesionToServiceServer);
+
+                var oldWcfSrv = Interlocked.Exchange(ref m_WCFService, wcfSrv);
+                if (oldWcfSrv != null)
+                {
+                    using (oldWcfSrv)
+                    {
+                        try
+                        {
+                            oldWcfSrv.Abort();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+
+                m_WCFService = wcfSrv;
                 {
                     log.Trace("WCF Service new");
 
@@ -62,11 +93,20 @@ namespace WCFSample_ServiceApp
                     wcfSrv.AddServiceEndpoint(typeof(IUserSessionToService), binding, uri);
 
                     wcfSrv.Faulted += OnWCFFaulted;
+                    wcfSrv.Closed += OnWCFClosed;
                     wcfSrv.Open();
+
+                    m_CheckTimer = new Timer(o =>
+                    {
+                        log.Trace($"WCF State = {wcfSrv?.State}");
+                    }, null, 0, 1000);
 
                     log.Trace("WCF Service Opened");
 
                     MainTaskEndEvent.WaitOne();
+
+                    m_CheckTimer.Dispose();
+                    wcfSrv.Faulted -= OnWCFFaulted;
                     wcfSrv.Close();
 
 
@@ -79,6 +119,14 @@ namespace WCFSample_ServiceApp
             }
         }
 
+        private Timer m_CheckTimer;
+
+        private void OnWCFClosed(object sender, EventArgs e)
+        {
+            log.Trace("WCF Closed {0}", e.ToString());
+            OnWCFFaulted(sender, e);
+        }
+
 
         private void OnWCFFaulted(object sender, EventArgs e)
         {
@@ -89,6 +137,11 @@ namespace WCFSample_ServiceApp
             {
                 log.Trace("WCF Fault {0}", e.ToString());
 			}
+
+            MainTaskEndEvent.Set();
+            MainTaskEndEvent.Reset();
+
+            Task.Run(MainTask);
         }
 
     }

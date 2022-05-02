@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using NLog;
-using ServiceToUserSession;
+using ServiceToUserSessionType2;
 
 namespace gRPCCoreLib
 {
-    public class UserSessionToServiceGrpcClient
+    public class UserSessionToServiceType2GrpcClient
     {
         private Logger log = LogManager.GetCurrentClassLogger();
 
         private GrpcChannel m_Channel;
-        private AsyncDuplexStreamingCall<UserSessionToServiceRequest, ServiceToUserSessionResponse> m_DuplexStream;
+        private AsyncDuplexStreamingCall<UserSessionToServiceType2Request, ServiceToUserSessionType2Response> m_DuplexStream;
         private CancellationTokenSource m_ResponseWaitCancel;
 
         Timer channelReconnectTimer;
@@ -57,10 +57,10 @@ namespace gRPCCoreLib
             AppContext.SetSwitch(
                 "System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-            m_Channel = GrpcChannel.ForAddress("http://localhost:50100/Connect1");
+            m_Channel = GrpcChannel.ForAddress("http://localhost:50100/Connect2");
 
             m_ResponseWaitCancel = new CancellationTokenSource();
-            var client = new WindowsServiceToUserSessionGrpcService.WindowsServiceToUserSessionGrpcServiceClient(m_Channel);
+            var client = new WindowsServiceToUserSessionType2GrpcService.WindowsServiceToUserSessionType2GrpcServiceClient(m_Channel);
             m_DuplexStream = client.Subscribe(cancellationToken: m_ResponseWaitCancel.Token);
 
             log.Trace($"Subscribe End, Stream={m_DuplexStream},{m_DuplexStream.GetHashCode()}");
@@ -85,23 +85,23 @@ namespace gRPCCoreLib
 
                     switch (command.ActionCase)
                     {
-                        case ServiceToUserSessionResponse.ActionOneofCase.None:
+                        case ServiceToUserSessionType2Response.ActionOneofCase.None:
                             break;
-                        case ServiceToUserSessionResponse.ActionOneofCase.GetDataResponse:
+                        case ServiceToUserSessionType2Response.ActionOneofCase.GetDataResponse:
                         {
                             var val = command.GetDataResponse;
-                            OnGetDataResponse?.Invoke(val.Data);
+                            OnGetDataResponse?.Invoke(val.Data2);
                         }
                             break;
-                        case ServiceToUserSessionResponse.ActionOneofCase.SendDataRequest:
+                        case ServiceToUserSessionType2Response.ActionOneofCase.SendDataRequest:
                         {
                             var val = command.SendDataRequest;
-                            var ret = OnSendDataRequest?.Invoke(val.Data);
-                            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceRequest
+                            var ret = OnSendDataRequest?.Invoke(val.Data2);
+                            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceType2Request
                             {
                                 SendDataResponse = new SendDataResponseParam
                                 {
-                                    Result = ret ?? false,
+                                    Result2 = ret ?? false,
                                 }
                             });
                         }
@@ -124,11 +124,11 @@ namespace gRPCCoreLib
         {
             var task = new TaskCompletionSource<string>();
 
-            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceRequest
+            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceType2Request
             {
                 GetDataRequest = new GetDataRequestParam
                 {
-                    Number = 2
+                    Number2 = 2
                 }
             });
 
@@ -152,7 +152,7 @@ namespace gRPCCoreLib
         public async Task SessionConnectAsync()
         {
 
-            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceRequest
+            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceType2Request
             {
                 RegisterUserSession = new RegisterUserSessionRequest
                 {

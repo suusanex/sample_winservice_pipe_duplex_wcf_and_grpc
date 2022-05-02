@@ -32,7 +32,7 @@ namespace gRPCWinServiceSample
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     logger.Info($"Add WebHost Startup");
-                    webBuilder.UseUrls("http://localhost:51232");
+                    webBuilder.UseUrls("http://localhost:50100");
                     webBuilder.UseStartup<Startup>();
                 })
                 .UseWindowsService();

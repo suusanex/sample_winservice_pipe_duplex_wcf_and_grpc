@@ -1,0 +1,17 @@
+﻿<Window x:Class="gRPCCoreClientType2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:gRPCCoreClientType2"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <DockPanel>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="GetData2" Click="OnBtnGetData2"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Session Disconnect" Click="OnBtnSessionDisconnect"/>
+        <Button Margin="5" DockPanel.Dock="Top" Content="Channel Close" Click="OnBtnChannelClose"/>
+        <TextBox Name="Output" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+    </DockPanel>
+</Window>

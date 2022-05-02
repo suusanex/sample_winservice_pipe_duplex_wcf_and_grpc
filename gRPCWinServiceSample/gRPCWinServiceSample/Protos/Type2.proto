@@ -1,0 +1,44 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "ServiceToUserSessionType2";
+
+message UserSessionToServiceType2Request {
+	oneof action {
+		RegisterUserSessionRequest RegisterUserSession = 1;
+		GetDataRequestParam GetDataRequest = 2;
+		SendDataResponseParam SendDataResponse = 3;
+	}
+}
+
+message RegisterUserSessionRequest{
+	int32 sessionId = 1;
+}
+
+message ServiceToUserSessionType2Response {
+
+	oneof action {
+		GetDataResponseParam GetDataResponse = 1;
+		SendDataRequestParam SendDataRequest = 2;		
+	}
+}
+
+
+message GetDataRequestParam {
+	int32 number2 = 1;
+}
+
+message GetDataResponseParam {
+	string data2 = 1;
+}
+
+message SendDataRequestParam {
+	string data2 = 1;
+}
+
+message SendDataResponseParam {
+	bool result2 = 1;
+}
+
+service WindowsServiceToUserSessionType2GrpcService {
+	rpc Subscribe (stream UserSessionToServiceType2Request) returns (stream ServiceToUserSessionType2Response);
+}

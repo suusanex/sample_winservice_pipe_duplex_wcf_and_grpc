@@ -39,7 +39,17 @@ namespace gRPCWinServiceSample
             {
                 endpoints.MapGrpcService<WindowsServiceToUserSessionGrpcServer>();
 
-                endpoints.MapGet("/", async context =>
+                endpoints.MapGet("/Connect1/", async context =>
+                {
+                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                });
+            });
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGrpcService<WindowsServiceToUserSessionType2GrpcServer>();
+
+                endpoints.MapGet("/Connect2/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
                 });

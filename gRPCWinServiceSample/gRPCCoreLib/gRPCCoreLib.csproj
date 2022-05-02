@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <Protobuf Include="..\gRPCWinServiceSample\Protos\GetInfo.proto" GrpcServices="Client" Link="GetInfo.proto" />
+    <Protobuf Include="..\gRPCWinServiceSample\Protos\Type2.proto" GrpcServices="Client">
+      <Link>Type2.proto</Link>
+    </Protobuf>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30803.129
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gRPCWinServiceSample", "gRPCWinServiceSample\gRPCWinServiceSample.csproj", "{D289745F-069C-49E8-9ED7-15EF918375A5}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPCFrameworkClient", "gRPCFrameworkClient\gRPCFrameworkClient.csproj", "{6F05FEAB-308C-4020-8A3C-760088A66781}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPCFrameworkLib", "gRPCFrameworkLib\gRPCFrameworkLib.csproj", "{3DDCC476-B9B7-4F84-A31C-B82CFC0CA104}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPCCoreClientType2", "gRPCCoreClientType2\gRPCCoreClientType2.csproj", "{315B4A1D-A4D3-4159-8BB1-6BA98AE1FCB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{3DDCC476-B9B7-4F84-A31C-B82CFC0CA104}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DDCC476-B9B7-4F84-A31C-B82CFC0CA104}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DDCC476-B9B7-4F84-A31C-B82CFC0CA104}.Release|Any CPU.Build.0 = Release|Any CPU
+		{315B4A1D-A4D3-4159-8BB1-6BA98AE1FCB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{315B4A1D-A4D3-4159-8BB1-6BA98AE1FCB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{315B4A1D-A4D3-4159-8BB1-6BA98AE1FCB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{315B4A1D-A4D3-4159-8BB1-6BA98AE1FCB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

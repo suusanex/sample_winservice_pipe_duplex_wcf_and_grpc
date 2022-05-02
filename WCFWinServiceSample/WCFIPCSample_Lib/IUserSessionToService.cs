@@ -29,6 +29,8 @@ namespace WCFIPCSample_Lib
         [OperationContract]
         bool SendData(string value);
 
+        [OperationContract]
+        bool SendData2(string value);
 
     }
 }
