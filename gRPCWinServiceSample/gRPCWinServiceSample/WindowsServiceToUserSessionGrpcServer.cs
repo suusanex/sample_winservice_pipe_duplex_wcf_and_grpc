@@ -26,7 +26,7 @@ namespace gRPCWinServiceSample
 
         public override async Task Subscribe(IAsyncStreamReader<UserSessionToServiceRequest> requestStream, IServerStreamWriter<ServiceToUserSessionResponse> responseStream, ServerCallContext context)
         {
-            logger.Info($"Start, ServerCallContext={context},{context.GetHashCode()}");
+            logger.Info($"Start, ServerCallContext={context},{context.GetHashCode()}, this={this.GetHashCode()}");
             try
             {
                 await RequestWaitAsync(new SubscribeData

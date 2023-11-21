@@ -1,11 +1,3 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace gRPCWinServiceSample
 {
     public class Worker : BackgroundService
@@ -19,7 +11,6 @@ namespace gRPCWinServiceSample
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             _logger.LogInformation($"Service Start: {DateTimeOffset.Now}");
 
             try
