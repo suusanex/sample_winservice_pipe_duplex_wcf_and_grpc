@@ -1,5 +1,7 @@
 ﻿syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option csharp_namespace = "ServiceToUserSession";
 
 message UserSessionToServiceRequest {
@@ -7,8 +9,11 @@ message UserSessionToServiceRequest {
 		RegisterUserSessionRequest RegisterUserSession = 1;
 		GetDataRequestParam GetDataRequest = 2;
 		SendDataResponseParam SendDataResponse = 3;
+		HighFrequencyResponseTestStartParam HighFrequencyResponseTestStart = 4;
+		google.protobuf.Empty HighFrequencyResponseTestEnd = 5;
 	}
 }
+
 
 message RegisterUserSessionRequest{
 	int32 sessionId = 1;
@@ -19,9 +24,22 @@ message ServiceToUserSessionResponse {
 	oneof action {
 		GetDataResponseParam GetDataResponse = 1;
 		SendDataRequestParam SendDataRequest = 2;		
+		HighFrequencyResponse HighFrequencyResponse = 3;
 	}
 }
 
+message UserSessionToServiceRequestNoStream {
+	oneof action {
+		GetDataRequestParam GetDataRequest = 1;
+	}
+}
+
+message ServiceToUserSessionResponseNoStream {
+
+	oneof action {
+		GetDataResponseParam GetDataResponse = 1;
+	}
+}
 
 message GetDataRequestParam {
 	int32 number = 1;
@@ -39,6 +57,20 @@ message SendDataResponseParam {
 	bool result = 1;
 }
 
+message HighFrequencyResponseTestStartParam {
+	int32 intervalMs = 1;
+}
+
+message HighFrequencyResponse{
+	int64 msgFileTime = 1;
+	string dataBuf = 2;
+}
+
 service WindowsServiceToUserSessionGrpcService {
 	rpc Subscribe (stream UserSessionToServiceRequest) returns (stream ServiceToUserSessionResponse);
+}
+
+
+service WindowsServiceToUserSessionGrpcServiceNoStream {
+	rpc Subscribe (UserSessionToServiceRequestNoStream) returns (ServiceToUserSessionResponseNoStream);
 }

@@ -44,7 +44,7 @@ namespace gRPCFrameworkLib
             {
                 return Task.Run(async () =>
                 {
-                    log.Trace($"Read, {command.ActionCase}");
+                    log.Debug($"Read, {command.ActionCase}");
 
                     m_CountForTestException++;
                     if (m_IsEnableTestException && 2 < m_CountForTestException)
@@ -126,7 +126,7 @@ namespace gRPCFrameworkLib
             OnGetDataResponse += GetDataResponseFunc;
 
 
-            log.Trace("GetDataRequest End");
+            log.Debug("GetDataRequest End");
 
             return await task.Task;
         }
@@ -136,7 +136,7 @@ namespace gRPCFrameworkLib
 
         void ChannelAndSessionReconnect(object NullObj)
         {
-            //log.Trace($"{nameof(ChannelAndSessionReconnect)}");
+            //log.Debug($"{nameof(ChannelAndSessionReconnect)}");
             //try
             //{
 
@@ -163,7 +163,7 @@ namespace gRPCFrameworkLib
             //}
             //catch (Exception e)
             //{
-            //    log.Trace($"{e}");
+            //    log.Debug($"{e}");
             //}
         }
 
@@ -189,7 +189,7 @@ namespace gRPCFrameworkLib
                 catch (Exception e)
                 {
                     //Completeの例外発生はすでにComplete不可能な状態であることを示しているので、そのままDisposeへ進む
-                    log.Trace($"{nameof(m_DuplexStream)} Complete Exception, {e}");
+                    log.Warn($"{nameof(m_DuplexStream)} Complete Exception, {e}");
                 }
                 finally
                 {

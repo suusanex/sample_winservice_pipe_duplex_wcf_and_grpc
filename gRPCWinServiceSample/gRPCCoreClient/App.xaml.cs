@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NLog;
+using NLog.Fluent;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -14,8 +16,10 @@ namespace gRPCCoreClient
     /// </summary>
     public partial class App : Application
     {
+        private Logger log = LogManager.GetCurrentClassLogger();
         private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
+            log.Error(e.Exception.ToString);
             MessageBox.Show(e.Exception.ToString());
             e.Handled = true;
         }

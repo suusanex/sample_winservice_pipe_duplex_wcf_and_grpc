@@ -18,6 +18,12 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using NLog;
 using gRPCCoreLib;
+using MathNet.Numerics.Statistics;
+using Grpc.Core;
+using Grpc.Net.Client.Configuration;
+using Grpc.Net.Client;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace gRPCCoreClient
 {
@@ -111,9 +117,11 @@ namespace gRPCCoreClient
             _grpcClient = new UserSessionToServiceGrpcClient();
             _grpcClient.OnGetDataResponse += OnGetDataResponse;
             _grpcClient.OnSendDataRequest += OnSendDataRequest;
+            _grpcClient.OnHighFrequencyResponse += OnHighFrequencyResponse;
             _grpcClient.Subscribe();
             WriteLine($"{nameof(OnBtnChannelOpen)} OK");
         }
+
 
         private bool OnSendDataRequest(string data)
         {
@@ -141,7 +149,7 @@ namespace gRPCCoreClient
         {
             var ret = await _grpcClient.GetDataRequestAsync();
 
-            log.Trace($"{nameof(OnBtnGetData)}, {ret}");
+            log.Debug($"{nameof(OnBtnGetData)}, {ret}");
             WriteLine($"{nameof(OnBtnGetData)} OK");
         }
 
@@ -150,8 +158,8 @@ namespace gRPCCoreClient
             await _grpcClient.SessionConnectAsync();
 
 
-            log.Trace("RegisterUserSessionRequest End");
-            log.Trace($"{nameof(OnBtnSessionConnect)}");
+            log.Debug("RegisterUserSessionRequest End");
+            log.Debug($"{nameof(OnBtnSessionConnect)}");
             WriteLine($"{nameof(OnBtnSessionConnect)} OK");
         }
 
@@ -163,7 +171,7 @@ namespace gRPCCoreClient
                 _grpcClient = null;
             }
 
-            log.Trace($"{nameof(OnBtnSessionDisconnect)}");
+            log.Debug($"{nameof(OnBtnSessionDisconnect)}");
             WriteLine($"{nameof(OnBtnSessionDisconnect)} OK");
         }
 
@@ -204,6 +212,129 @@ namespace gRPCCoreClient
             stop.Stop();
 
             Dispatcher.Invoke(() => WriteLine($"{loop} time = {stop.Elapsed}"));
+        }
+
+        private readonly TimeSpan m_HighFrequencyInterval = TimeSpan.FromMilliseconds(100);
+
+        private async void OnHighFrequencyResponseTestStart(object sender, RoutedEventArgs e)
+        {
+            m_HighFrequencyResponseTestDelayTimes.Clear();
+            m_HighFrequencyResponseSw.Restart();
+
+            await _grpcClient.HighFrequencyResponseTestStartAsync(m_HighFrequencyInterval);
+
+
+            log.Debug("HighFrequencyResponseTestStartAsync End");
+            WriteLine($"{nameof(OnHighFrequencyResponseTestStart)} OK");
+
+        }
+
+        private async void OnHighFrequencyResponseTestEnd(object sender, RoutedEventArgs e)
+        {
+            await _grpcClient.HighFrequencyResponseTestEndAsync();
+
+            WriteLine($"{nameof(OnHighFrequencyResponseTestEnd)} OK, ResCount={m_HighFrequencyResponseTestDelayTimes.Count}");
+
+        }
+
+        private readonly List<double> m_HighFrequencyResponseTestDelayTimes = new();
+        private readonly List<double> m_HighFrequencyResponseTestIntervalTimes = new();
+
+        DateTime m_LastResponseDateTime;
+
+        readonly Stopwatch m_HighFrequencyResponseSw = new ();
+
+        private void OnHighFrequencyResponse(long msgFileTime)
+        {
+            var nowDateTime = DateTime.Now;
+            var responseDateTime = DateTime.FromFileTimeUtc(msgFileTime).ToLocalTime();
+            var diff = nowDateTime - responseDateTime;
+            m_HighFrequencyResponseTestDelayTimes.Add(diff.TotalMilliseconds);
+
+            if (m_LastResponseDateTime != default)
+            {
+                m_HighFrequencyResponseTestIntervalTimes.Add((responseDateTime - m_LastResponseDateTime).TotalMilliseconds);
+            }
+            m_LastResponseDateTime = responseDateTime;
+
+            if (TimeSpan.FromSeconds(5) < m_HighFrequencyResponseSw.Elapsed)
+            {
+                m_HighFrequencyResponseSw.Restart();
+                var median = m_HighFrequencyResponseTestDelayTimes.Median();
+                var ave = m_HighFrequencyResponseTestDelayTimes.Average();
+
+                log.Debug("HighFrequencyResponseTestEndAsync End");
+                WriteLine($"{nameof(OnHighFrequencyResponse)}, Delay, Median={m_HighFrequencyResponseTestDelayTimes.Median()}[ms], Average={m_HighFrequencyResponseTestDelayTimes.Average()}[ms]");
+                WriteLine($"{nameof(OnHighFrequencyResponse)}, Interval, Expected={m_HighFrequencyInterval.TotalMilliseconds}[ms], Median={m_HighFrequencyResponseTestIntervalTimes.Median()}[ms], Average={m_HighFrequencyResponseTestIntervalTimes.Average()}[ms]");
+                m_HighFrequencyResponseTestDelayTimes.Clear();
+            }
+        }
+
+        private int m_GetDataRequestAsyncNumber;
+
+        private async void OnNoStreamRepeatTestStart(object sender, RoutedEventArgs e)
+        {
+            log.Info("OnNoStreamRepeatTestStart Start");
+
+            if (m_NoStreamRepeatTestCancel != null) await m_NoStreamRepeatTestCancel?.CancelAsync();
+            m_NoStreamRepeatTestCancel = new();
+            var cancelToken = m_NoStreamRepeatTestCancel.Token;
+
+            var client = new UserSessionToServiceGrpcNoStreamClient();
+            var sw = new Stopwatch();
+
+            var viewSw = new Stopwatch();
+            viewSw.Start();
+
+            try
+            {
+                await Task.Run(async () =>
+                {
+                    while (!cancelToken.IsCancellationRequested)
+                    {
+                        m_GetDataRequestAsyncNumber++;
+                        sw.Restart();
+                        var res = await client.GetDataRequestAsync(m_GetDataRequestAsyncNumber);
+                        sw.Stop();
+                        var interval = sw.ElapsedMilliseconds;
+                        log.Debug($"{nameof(OnNoStreamRepeatTestStart)}, {interval}[ms] {res.Data}");
+                        m_NoStreamRepeatTestResponseTimes.Add(interval);
+
+                        if (TimeSpan.FromSeconds(10) < viewSw.Elapsed)
+                        {
+                            viewSw.Restart();
+                            log.Info("HighFrequencyResponseTestEndAsync End");
+                            WriteLine($"{nameof(OnNoStreamRepeatTestStart)}, Response, Median={m_NoStreamRepeatTestResponseTimes.Median()}[ms], Average={m_NoStreamRepeatTestResponseTimes.Average()}[ms]");
+                            m_NoStreamRepeatTestResponseTimes.Clear();
+                        }
+
+                        await Task.Delay(m_NoStreamRepeatTestInterval, cancelToken);
+                    }
+
+                }, cancelToken);
+            }
+            catch (OperationCanceledException )
+            {
+                return;
+            }
+        }
+
+        private void OnNoStreamRepeatTestEnd(object sender, RoutedEventArgs e)
+        {
+            m_NoStreamRepeatTestCancel?.Cancel();
+            m_NoStreamRepeatTestCancel = null;
+
+        }
+
+        CancellationTokenSource? m_NoStreamRepeatTestCancel;
+        private readonly TimeSpan m_NoStreamRepeatTestInterval = TimeSpan.FromMilliseconds(100);
+        private readonly List<double> m_NoStreamRepeatTestResponseTimes = new();
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+
+            log.Info("OnLoaded MainWindow");
+
         }
     }
 }

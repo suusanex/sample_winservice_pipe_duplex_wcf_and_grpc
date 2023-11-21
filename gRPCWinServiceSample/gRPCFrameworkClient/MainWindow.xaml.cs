@@ -139,7 +139,7 @@ namespace gRPCFrameworkClient
         {
             var ret = await _grpcClient.GetDataRequestAsync();
 
-            log.Trace($"{nameof(OnBtnGetData)}, {ret}");
+            log.Debug($"{nameof(OnBtnGetData)}, {ret}");
             WriteLine($"{nameof(OnBtnGetData)} OK");
         }
 
@@ -148,8 +148,8 @@ namespace gRPCFrameworkClient
             await _grpcClient.SessionConnectAsync();
 
 
-            log.Trace("RegisterUserSessionRequest End");
-            log.Trace($"{nameof(OnBtnSessionConnect)}");
+            log.Debug("RegisterUserSessionRequest End");
+            log.Debug($"{nameof(OnBtnSessionConnect)}");
             WriteLine($"{nameof(OnBtnSessionConnect)} OK");
         }
 
@@ -158,7 +158,7 @@ namespace gRPCFrameworkClient
             _grpcClient?.Dispose();
             _grpcClient = null;
 
-            log.Trace($"{nameof(OnBtnSessionDisconnect)}");
+            log.Debug($"{nameof(OnBtnSessionDisconnect)}");
             WriteLine($"{nameof(OnBtnSessionDisconnect)} OK");
         }
 

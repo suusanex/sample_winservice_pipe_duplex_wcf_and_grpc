@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using NLog;
@@ -35,7 +36,7 @@ namespace gRPCCoreLib
                 catch (Exception e)
                 {
                     //Completeの例外発生はすでにComplete不可能な状態であることを示しているので、そのままDisposeへ進む
-                    log.Trace($"{nameof(m_DuplexStream)} Complete Exception, {e}");
+                    log.Warn($"{nameof(m_DuplexStream)} Complete Exception, {e}");
                 }
                 finally
                 {
@@ -50,6 +51,7 @@ namespace gRPCCoreLib
         }
 
         public event Action<string> OnGetDataResponse;
+        public event Action<long> OnHighFrequencyResponse;
 
         public void Subscribe()
         {
@@ -63,7 +65,7 @@ namespace gRPCCoreLib
             var client = new WindowsServiceToUserSessionGrpcService.WindowsServiceToUserSessionGrpcServiceClient(m_Channel);
             m_DuplexStream = client.Subscribe(cancellationToken: m_ResponseWaitCancel.Token);
 
-            log.Trace($"Subscribe End, Stream={m_DuplexStream},{m_DuplexStream.GetHashCode()}");
+            log.Debug($"Subscribe End, Stream={m_DuplexStream},{m_DuplexStream.GetHashCode()}");
 
             //TODO:一定時間での再接続タイマー
             //channelReconnectTimer = new Timer(ChannelAndSessionReconnect, null, ReconnectTimeSpan, new TimeSpan(0, 0, 0, 0, -1));
@@ -75,7 +77,7 @@ namespace gRPCCoreLib
 
                 await foreach (var command in stream.ReadAllAsync(m_ResponseWaitCancel.Token))
                 {
-                    log.Trace($"Read, {command.ActionCase}");
+                    log.Debug($"Read, {command.ActionCase}");
 
                     m_CountForTestException++;
                     if (m_IsEnableTestException && 2 < m_CountForTestException)
@@ -105,6 +107,9 @@ namespace gRPCCoreLib
                                 }
                             });
                         }
+                            break;
+                        case ServiceToUserSessionResponse.ActionOneofCase.HighFrequencyResponse:
+                            OnHighFrequencyResponse?.Invoke(command.HighFrequencyResponse.MsgFileTime);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -141,7 +146,7 @@ namespace gRPCCoreLib
             OnGetDataResponse += GetDataResponseFunc;
 
 
-            log.Trace("GetDataRequest End");
+            log.Debug("GetDataRequest End");
 
             return await task.Task;
         }
@@ -162,9 +167,32 @@ namespace gRPCCoreLib
 
         }
 
+        public async Task HighFrequencyResponseTestStartAsync(TimeSpan interval)
+        {
+
+            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceRequest
+            {
+                HighFrequencyResponseTestStart = new ()
+                {
+                    IntervalMs = (int)interval.TotalMilliseconds,
+                },
+            });
+
+        }
+
+        public async Task HighFrequencyResponseTestEndAsync()
+        {
+
+            await m_DuplexStream.RequestStream.WriteAsync(new UserSessionToServiceRequest
+            {
+                HighFrequencyResponseTestEnd = new Empty(),
+            });
+
+        }
+
         void ChannelAndSessionReconnect(object NullObj)
         {
-            //log.Trace($"{nameof(ChannelAndSessionReconnect)}");
+            //log.Debug($"{nameof(ChannelAndSessionReconnect)}");
             //try
             //{
 
@@ -191,7 +219,7 @@ namespace gRPCCoreLib
             //}
             //catch (Exception e)
             //{
-            //    log.Trace($"{e}");
+            //    log.Debug($"{e}");
             //}
         }
 

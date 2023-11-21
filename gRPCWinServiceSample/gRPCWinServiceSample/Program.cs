@@ -13,8 +13,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         logging.ClearProviders();
         logging.AddNLog();
         logging.AddConsole();
-        logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug); //TODO:外部レジストリ設定の読み込みによる可変設定
-        logging.AddFilter("Grpc", Microsoft.Extensions.Logging.LogLevel.Debug);
+        logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information); //TODO:外部レジストリ設定の読み込みによる可変設定
+        logging.AddFilter("Grpc", Microsoft.Extensions.Logging.LogLevel.Information);
     })
     .ConfigureServices(services =>
     {
@@ -47,6 +47,16 @@ IHost host = Host.CreateDefaultBuilder(args)
                 endpoints.MapGrpcService<WindowsServiceToUserSessionGrpcServer>();
 
                 endpoints.MapGet("/Connect1/", async context =>
+                {
+                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                });
+            });
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGrpcService<WindowsServiceToUserSessionGrpcServiceNoStreamServer>();
+
+                endpoints.MapGet("/Connect1NoStream/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
                 });

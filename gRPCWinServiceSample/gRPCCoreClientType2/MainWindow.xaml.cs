@@ -141,7 +141,7 @@ namespace gRPCCoreClientType2
         {
             var ret = await _grpcClient.GetDataRequestAsync();
 
-            log.Trace($"{nameof(OnBtnGetData2)}, {ret}");
+            log.Debug($"{nameof(OnBtnGetData2)}, {ret}");
             WriteLine($"{nameof(OnBtnGetData2)} OK");
         }
 
@@ -150,8 +150,8 @@ namespace gRPCCoreClientType2
             await _grpcClient.SessionConnectAsync();
 
 
-            log.Trace("RegisterUserSessionRequest End");
-            log.Trace($"{nameof(OnBtnSessionConnect)}");
+            log.Debug("RegisterUserSessionRequest End");
+            log.Debug($"{nameof(OnBtnSessionConnect)}");
             WriteLine($"{nameof(OnBtnSessionConnect)} OK");
         }
 
@@ -163,7 +163,7 @@ namespace gRPCCoreClientType2
                 _grpcClient = null;
             }
 
-            log.Trace($"{nameof(OnBtnSessionDisconnect)}");
+            log.Debug($"{nameof(OnBtnSessionDisconnect)}");
             WriteLine($"{nameof(OnBtnSessionDisconnect)} OK");
         }
 

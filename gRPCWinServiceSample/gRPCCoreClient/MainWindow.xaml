@@ -5,14 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gRPCCoreClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Width="800" SizeToContent="Height" Loaded="OnLoaded">
     <DockPanel>
-        <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
-        <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>
-        <Button Margin="5" DockPanel.Dock="Top" Content="GetData" Click="OnBtnGetData"/>
-        <Button Margin="5" DockPanel.Dock="Top" Content="Session Disconnect" Click="OnBtnSessionDisconnect"/>
-        <Button Margin="5" DockPanel.Dock="Top" Content="Channel Close" Click="OnBtnChannelClose"/>
-        <Button Margin="5" DockPanel.Dock="Top" Content="StopWatch" Click="OnBtnStopWatch"/>
-        <TextBox Name="Output" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+        <DockPanel Margin="20" DockPanel.Dock="Top">
+            <TextBlock Margin="5" DockPanel.Dock="Top" Text="Stream"></TextBlock>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="GetData" Click="OnBtnGetData"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Session Disconnect" Click="OnBtnSessionDisconnect"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Channel Close" Click="OnBtnChannelClose"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="StopWatch" Click="OnBtnStopWatch"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="HighFrequencyResponseTestStart" Click="OnHighFrequencyResponseTestStart"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="HighFrequencyResponseTestEnd" Click="OnHighFrequencyResponseTestEnd"/>
+        </DockPanel>
+        <DockPanel Margin="20" DockPanel.Dock="Top">
+            <TextBlock Margin="5" DockPanel.Dock="Top" Text="Other"></TextBlock>
+            <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestStart" Click="OnNoStreamRepeatTestStart"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestEnd" Click="OnNoStreamRepeatTestEnd"/>
+        </DockPanel>
+        <TextBox Name="Output" IsReadOnly="True" MinHeight="200" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
     </DockPanel>
 </Window>

@@ -35,7 +35,7 @@ namespace gRPCCoreLib
                 catch (Exception e)
                 {
                     //Completeの例外発生はすでにComplete不可能な状態であることを示しているので、そのままDisposeへ進む
-                    log.Trace($"{nameof(m_DuplexStream)} Complete Exception, {e}");
+                    log.Debug($"{nameof(m_DuplexStream)} Complete Exception, {e}");
                 }
                 finally
                 {
@@ -63,7 +63,7 @@ namespace gRPCCoreLib
             var client = new WindowsServiceToUserSessionType2GrpcService.WindowsServiceToUserSessionType2GrpcServiceClient(m_Channel);
             m_DuplexStream = client.Subscribe(cancellationToken: m_ResponseWaitCancel.Token);
 
-            log.Trace($"Subscribe End, Stream={m_DuplexStream},{m_DuplexStream.GetHashCode()}");
+            log.Debug($"Subscribe End, Stream={m_DuplexStream},{m_DuplexStream.GetHashCode()}");
 
             //TODO:一定時間での再接続タイマー
             //channelReconnectTimer = new Timer(ChannelAndSessionReconnect, null, ReconnectTimeSpan, new TimeSpan(0, 0, 0, 0, -1));
@@ -75,7 +75,7 @@ namespace gRPCCoreLib
 
                 await foreach (var command in stream.ReadAllAsync(m_ResponseWaitCancel.Token))
                 {
-                    log.Trace($"Read, {command.ActionCase}");
+                    log.Debug($"Read, {command.ActionCase}");
 
                     m_CountForTestException++;
                     if (m_IsEnableTestException && 2 < m_CountForTestException)
@@ -141,7 +141,7 @@ namespace gRPCCoreLib
             OnGetDataResponse += GetDataResponseFunc;
 
 
-            log.Trace("GetDataRequest End");
+            log.Debug("GetDataRequest End");
 
             return await task.Task;
         }
@@ -164,7 +164,7 @@ namespace gRPCCoreLib
 
         void ChannelAndSessionReconnect(object NullObj)
         {
-            //log.Trace($"{nameof(ChannelAndSessionReconnect)}");
+            //log.Debug($"{nameof(ChannelAndSessionReconnect)}");
             //try
             //{
 
@@ -191,7 +191,7 @@ namespace gRPCCoreLib
             //}
             //catch (Exception e)
             //{
-            //    log.Trace($"{e}");
+            //    log.Debug($"{e}");
             //}
         }
 

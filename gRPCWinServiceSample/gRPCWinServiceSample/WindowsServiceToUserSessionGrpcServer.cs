@@ -48,7 +48,7 @@ namespace gRPCWinServiceSample
             logger.Info($"Connection End, {context},{context.GetHashCode()}");
         }
 
-        private Timer ResponseTimer;
+        private Timer? ResponseTimer;
 
         private int m_CountForTestException;
         private bool m_IsEnableTestException;// = true;
@@ -117,6 +117,56 @@ namespace gRPCWinServiceSample
                                 logger.Info($"SendDataResponse Call, {val.Result}");
                             }
                             break;
+                        case UserSessionToServiceRequest.ActionOneofCase.HighFrequencyResponseTestStart:
+                            if (ResponseTimer != null)
+                            {
+                                await ResponseTimer.DisposeAsync();
+                                ResponseTimer = null;
+                            }
+                            m_HighFrequencyResponseTestCancel?.Dispose();
+                            m_HighFrequencyResponseTestCancel = new();
+                            var cancelToken = m_HighFrequencyResponseTestCancel.Token;
+                            var interval = TimeSpan.FromMilliseconds(req.HighFrequencyResponseTestStart.IntervalMs);
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    //レスポンスに現実的な負荷を与えるために、適当な100文字の文字列を追加
+                                    while (!cancelToken.IsCancellationRequested)
+                                    {
+                                        await subscribe.ResponseStream.WriteAsync(
+                                            new ServiceToUserSessionResponse
+                                            {
+                                                HighFrequencyResponse = new ()
+                                                {
+                                                    MsgFileTime = DateTime.Now.ToFileTimeUtc(),
+                                                    DataBuf = m_ResponseBufStr,
+                                                }
+                                            }, cancelToken);
+
+                                        await Task.Delay(interval, cancelToken);
+                                    }
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    logger.Info($"HighFrequencyResponseTest Canceled");
+                                }
+                                catch (Exception e)
+                                {
+                                    logger.Warn($"{e}");
+                                }
+                            }, cancelToken);
+
+                            break;
+                        case UserSessionToServiceRequest.ActionOneofCase.HighFrequencyResponseTestEnd:
+                            if (m_HighFrequencyResponseTestCancel != null)
+                            {
+                                await m_HighFrequencyResponseTestCancel.CancelAsync();
+                                m_HighFrequencyResponseTestCancel = null;
+                            }
+
+                            break;
+
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -128,5 +178,8 @@ namespace gRPCWinServiceSample
             }
         }
 
+        private CancellationTokenSource? m_HighFrequencyResponseTestCancel;
+
+        private readonly string m_ResponseBufStr = string.Join("", Enumerable.Repeat("0123456789", 10));
     }
 }
