@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-	  <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+	  <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-gRPCWinServiceSample-D63B4D3E-7093-4A9B-BA1E-F57F8571FE0E</UserSecretsId>
