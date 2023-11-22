@@ -35,6 +35,10 @@ IHost host = Host.CreateDefaultBuilder(args)
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             });
+            options.ListenNamedPipe("gRPCWinServiceSamplePipeName", listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
+            });
 
         });
 

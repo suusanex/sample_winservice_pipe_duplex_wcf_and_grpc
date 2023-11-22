@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,12 @@ using ServiceToUserSession;
 
 namespace gRPCCoreLib
 {
+    public enum GrpcConnectType
+    {
+        TCP,
+        Pipe,
+    }
+
     public class UserSessionToServiceGrpcClient
     {
         private Logger log = LogManager.GetCurrentClassLogger();
@@ -53,13 +60,29 @@ namespace gRPCCoreLib
         public event Action<string> OnGetDataResponse;
         public event Action<long> OnHighFrequencyResponse;
 
-        public void Subscribe()
+        public void Subscribe(GrpcConnectType connectType)
         {
 
             AppContext.SetSwitch(
                 "System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-            m_Channel = GrpcChannel.ForAddress("http://localhost:50100/Connect1");
+            if (connectType == GrpcConnectType.Pipe)
+            {
+                var connectionFactory = new NamedPipesConnectionFactory("gRPCWinServiceSamplePipeName");
+                var socketsHttpHandler = new SocketsHttpHandler
+                {
+                    ConnectCallback = connectionFactory.ConnectAsync
+                };
+
+                m_Channel = GrpcChannel.ForAddress("http://localhost/Connect1", new GrpcChannelOptions
+                {
+                    HttpHandler = socketsHttpHandler
+                });
+            }
+            else
+            {
+                m_Channel = GrpcChannel.ForAddress("http://localhost:50100/Connect1");
+            }
 
             m_ResponseWaitCancel = new CancellationTokenSource();
             var client = new WindowsServiceToUserSessionGrpcService.WindowsServiceToUserSessionGrpcServiceClient(m_Channel);

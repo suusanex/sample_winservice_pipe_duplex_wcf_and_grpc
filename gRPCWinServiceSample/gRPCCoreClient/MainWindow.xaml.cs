@@ -109,6 +109,12 @@ namespace gRPCCoreClient
 
         private async void OnBtnChannelOpen(object sender, RoutedEventArgs e)
         {
+            await ChannelOpen(GrpcConnectType.TCP);
+            WriteLine($"{nameof(OnBtnChannelOpen)} OK");
+        }
+
+        private async Task ChannelOpen(GrpcConnectType connectType)
+        {
             if (_grpcClient != null)
             {
                 await _grpcClient.DisposeAsync();
@@ -118,8 +124,14 @@ namespace gRPCCoreClient
             _grpcClient.OnGetDataResponse += OnGetDataResponse;
             _grpcClient.OnSendDataRequest += OnSendDataRequest;
             _grpcClient.OnHighFrequencyResponse += OnHighFrequencyResponse;
-            _grpcClient.Subscribe();
-            WriteLine($"{nameof(OnBtnChannelOpen)} OK");
+            _grpcClient.Subscribe(connectType);
+        }
+
+
+        private async void OnBtnChannelOpenPipe(object sender, RoutedEventArgs e)
+        {
+            await ChannelOpen(GrpcConnectType.Pipe);
+            WriteLine($"{nameof(OnBtnChannelOpenPipe)} OK");
         }
 
 
@@ -190,7 +202,7 @@ namespace gRPCCoreClient
             async Task OneCall()
             {
                 _grpcClient = new UserSessionToServiceGrpcClient();
-                _grpcClient.Subscribe();
+                _grpcClient.Subscribe(GrpcConnectType.TCP);
                 await _grpcClient.GetDataRequestAsync().ConfigureAwait(false);
 
                 await _grpcClient.DisposeAsync().ConfigureAwait(false);
@@ -276,11 +288,16 @@ namespace gRPCCoreClient
         {
             log.Info("OnNoStreamRepeatTestStart Start");
 
+            await NoStreamRepeatTestStart(GrpcConnectType.TCP);
+        }
+
+        private async Task NoStreamRepeatTestStart(GrpcConnectType connectType)
+        {
             if (m_NoStreamRepeatTestCancel != null) await m_NoStreamRepeatTestCancel?.CancelAsync();
             m_NoStreamRepeatTestCancel = new();
             var cancelToken = m_NoStreamRepeatTestCancel.Token;
 
-            var client = new UserSessionToServiceGrpcNoStreamClient();
+            var client = new UserSessionToServiceGrpcNoStreamClient(connectType);
             var sw = new Stopwatch();
 
             var viewSw = new Stopwatch();
@@ -304,19 +321,27 @@ namespace gRPCCoreClient
                         {
                             viewSw.Restart();
                             log.Info("HighFrequencyResponseTestEndAsync End");
-                            WriteLine($"{nameof(OnNoStreamRepeatTestStart)}, Response, Median={m_NoStreamRepeatTestResponseTimes.Median()}[ms], Average={m_NoStreamRepeatTestResponseTimes.Average()}[ms]");
+                            WriteLine(
+                                $"{nameof(OnNoStreamRepeatTestStart)}, Response, Median={m_NoStreamRepeatTestResponseTimes.Median()}[ms], Average={m_NoStreamRepeatTestResponseTimes.Average()}[ms]");
                             m_NoStreamRepeatTestResponseTimes.Clear();
                         }
 
                         await Task.Delay(m_NoStreamRepeatTestInterval, cancelToken);
                     }
-
                 }, cancelToken);
             }
-            catch (OperationCanceledException )
+            catch (OperationCanceledException)
             {
                 return;
             }
+        }
+
+        private async void OnNoStreamRepeatTestStartPipe(object sender, RoutedEventArgs e)
+        {
+            log.Info($"{nameof(OnNoStreamRepeatTestStartPipe)} Start");
+
+            await NoStreamRepeatTestStart(GrpcConnectType.Pipe);
+
         }
 
         private void OnNoStreamRepeatTestEnd(object sender, RoutedEventArgs e)
@@ -336,5 +361,6 @@ namespace gRPCCoreClient
             log.Info("OnLoaded MainWindow");
 
         }
+
     }
 }

@@ -7,16 +7,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ServiceToUserSession;
+using System.Net.Http;
+using System.Threading.Channels;
 
 namespace gRPCCoreLib
 {
-    public class UserSessionToServiceGrpcNoStreamClient
+    public class UserSessionToServiceGrpcNoStreamClient(GrpcConnectType m_ConnectType)
     {
-
-
         private GrpcChannel CreateChannel()
         {
-            return GrpcChannel.ForAddress("http://localhost:50100/Connect1NoStream");
+            if (m_ConnectType == GrpcConnectType.Pipe)
+            {
+                var connectionFactory = new NamedPipesConnectionFactory("gRPCWinServiceSamplePipeName");
+                var socketsHttpHandler = new SocketsHttpHandler
+                {
+                    ConnectCallback = connectionFactory.ConnectAsync
+                };
+
+                return GrpcChannel.ForAddress("http://localhost/Connect1NoStream", new GrpcChannelOptions
+                {
+                    HttpHandler = socketsHttpHandler
+                });
+            }
+            else
+            {
+                return GrpcChannel.ForAddress("http://localhost:50100/Connect1NoStream");
+            }
         }
 
         public async Task<GetDataResponseParam> GetDataRequestAsync(int number)

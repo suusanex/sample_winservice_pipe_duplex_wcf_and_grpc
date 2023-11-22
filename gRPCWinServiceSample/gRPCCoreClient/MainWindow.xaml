@@ -9,7 +9,8 @@
     <DockPanel>
         <DockPanel Margin="20" DockPanel.Dock="Top">
             <TextBlock Margin="5" DockPanel.Dock="Top" Text="Stream"></TextBlock>
-            <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open" Click="OnBtnChannelOpen"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open(TCP)" Click="OnBtnChannelOpen"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="Channel Open(Pipe)" Click="OnBtnChannelOpenPipe"/>
             <Button Margin="5" DockPanel.Dock="Top" Content="Session Connect" Click="OnBtnSessionConnect"/>
             <Button Margin="5" DockPanel.Dock="Top" Content="GetData" Click="OnBtnGetData"/>
             <Button Margin="5" DockPanel.Dock="Top" Content="Session Disconnect" Click="OnBtnSessionDisconnect"/>
@@ -20,7 +21,8 @@
         </DockPanel>
         <DockPanel Margin="20" DockPanel.Dock="Top">
             <TextBlock Margin="5" DockPanel.Dock="Top" Text="Other"></TextBlock>
-            <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestStart" Click="OnNoStreamRepeatTestStart"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestStart(TCP)" Click="OnNoStreamRepeatTestStart"/>
+            <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestStart(Pipe)" Click="OnNoStreamRepeatTestStartPipe"/>
             <Button Margin="5" DockPanel.Dock="Top" Content="NoStreamRepeatTestEnd" Click="OnNoStreamRepeatTestEnd"/>
         </DockPanel>
         <TextBox Name="Output" IsReadOnly="True" MinHeight="200" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
