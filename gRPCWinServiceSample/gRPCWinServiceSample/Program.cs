@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
 using gRPCWinServiceSample;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,6 +40,7 @@ IHost host = Host.CreateDefaultBuilder(args)
             options.ListenNamedPipe("gRPCWinServiceSamplePipeName", listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
+                g_PipeName = listenOptions.EndPoint.ToString();
             });
 
         });
@@ -88,4 +91,6 @@ await host.RunAsync();
 public partial class Program
 {
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    internal static string? g_PipeName = null;
+
 }

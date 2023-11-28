@@ -1,3 +1,5 @@
+using Win32APILib;
+
 namespace gRPCWinServiceSample
 {
     public class Worker : BackgroundService
@@ -12,6 +14,27 @@ namespace gRPCWinServiceSample
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation($"Service Start: {DateTimeOffset.Now}");
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    var pipeName = Program.g_PipeName;
+                    while (!FileUtility.PipeExists(pipeName))
+                    {
+                        _logger.LogInformation($"Pipe Wait: {DateTimeOffset.Now}");
+                        Thread.Sleep(100);
+                    }
+                    FileUtility.PipeSetAclAuthenticatedUsersPermit(pipeName);
+
+                    _logger.LogInformation($"Pipe ACL Set: {DateTimeOffset.Now}");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation($"Pipe ACL Fail: {e}");
+                }
+            });
+
 
             try
             {
