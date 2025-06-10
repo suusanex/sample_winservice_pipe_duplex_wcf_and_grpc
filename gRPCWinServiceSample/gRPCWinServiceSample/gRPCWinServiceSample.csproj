@@ -20,10 +20,6 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Win32APILib\Win32APILib.vcxproj" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<Protobuf Include="Protos\GetInfo.proto" GrpcServices="Server" />
 		<Protobuf Include="Protos\Type2.proto" GrpcServices="Server" />
