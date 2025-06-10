@@ -1,4 +1,3 @@
-using System.Net;
 using gRPCWinServiceSample;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,6 +5,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using NLog;
 using NLog.Extensions.Logging;
+using System.IO.Pipes;
+using System.Net;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging(logging =>
@@ -28,6 +31,14 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         logger.Info($"Add WebHost Startup");
         //webBuilder.UseUrls("http://localhost:50100");
+
+        var ps = new PipeSecurity();
+        ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null), PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
+        webBuilder.UseNamedPipes(option =>
+        {
+            option.PipeSecurity = ps;
+            option.CurrentUserOnly = false;
+        });
 
         webBuilder.ConfigureKestrel(options =>
         {
